@@ -1,0 +1,354 @@
+{% extends "base.html" %}
+
+{% block title %}Add New Entry - Lab Management{% endblock %}
+
+{% block breadcrumb %}
+<span class="breadcrumb-item">
+    <a href="{{ url_for('home') }}">Home</a>
+</span>
+<span class="breadcrumb-item active">Add Entry</span>
+{% endblock %}
+
+{% block content %}
+<div class="form-container">
+    <div class="form-header">
+        <h2>Add New Entry</h2>
+        <p class="subtitle">Fill in the details to add a new lab-rider assignment</p>
+    </div>
+
+    <form id="addEntryForm" class="entry-form">
+        <!-- Section 1: Basic Information -->
+        <div class="form-section">
+            <h3 class="section-title">📋 Basic Information</h3>
+            
+            <div class="form-group">
+                <label for="lab_name" class="form-label">Lab Name <span class="required">*</span></label>
+                <input 
+                    type="text" 
+                    id="lab_name" 
+                    name="lab_name" 
+                    class="form-input" 
+                    placeholder="e.g., Lab A, Lab B, Lab C, Lab D"
+                    required
+                >
+            </div>
+
+            <div class="form-group">
+                <label for="rider_name" class="form-label">Rider Name <span class="required">*</span></label>
+                <input 
+                    type="text" 
+                    id="rider_name" 
+                    name="rider_name" 
+                    class="form-input" 
+                    placeholder="Enter rider's full name"
+                    required
+                >
+            </div>
+
+            <div class="form-group">
+                <label for="time_slot" class="form-label">Time Slot <span class="required">*</span></label>
+                <input 
+                    type="text" 
+                    id="time_slot" 
+                    name="time_slot" 
+                    class="form-input" 
+                    placeholder="e.g., 09:00–11:00"
+                    pattern="\d{2}:\d{2}[–-]\d{2}:\d{2}"
+                    required
+                >
+                <small class="form-hint">Format: HH:MM–HH:MM (e.g., 09:00–11:00)</small>
+            </div>
+        </div>
+
+        <!-- Section 2: Test Details -->
+        <div class="form-section">
+            <h3 class="section-title">🧪 Test Details</h3>
+            
+            <div class="form-group">
+                <label for="test_type" class="form-label">Test Type <span class="required">*</span></label>
+                <select id="test_type" name="test_type" class="form-select" required>
+                    <option value="">-- Select Test Type --</option>
+                    <option value="Emission">Emission</option>
+                    <option value="Performance">Performance</option>
+                    <option value="Safety">Safety</option>
+                    <option value="Durability">Durability</option>
+                    <option value="Noise">Noise</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="fuel_type" class="form-label">Fuel Type <span class="required">*</span></label>
+                <select id="fuel_type" name="fuel_type" class="form-select" required>
+                    <option value="">-- Select Fuel Type --</option>
+                    <option value="Petrol">Petrol</option>
+                    <option value="Diesel">Diesel</option>
+                    <option value="CNG">CNG</option>
+                    <option value="LPG">LPG</option>
+                    <option value="Electric">Electric</option>
+                    <option value="Hybrid">Hybrid</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="vehicle_class" class="form-label">Vehicle Class <span class="required">*</span></label>
+                <select id="vehicle_class" name="vehicle_class" class="form-select" required>
+                    <option value="">-- Select Vehicle Class --</option>
+                    <option value="Two-Wheeler">Two-Wheeler</option>
+                    <option value="Three-Wheeler">Three-Wheeler</option>
+                    <option value="Four-Wheeler">Four-Wheeler</option>
+                    <option value="Heavy-Duty">Heavy-Duty</option>
+                    <option value="Light Commercial">Light Commercial</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Section 3: Status & Remarks -->
+        <div class="form-section">
+            <h3 class="section-title">✅ Status & Remarks</h3>
+            
+            <div class="form-group">
+                <label for="status" class="form-label">Status <span class="required">*</span></label>
+                <select id="status" name="status" class="form-select" required>
+                    <option value="">-- Select Status --</option>
+                    <option value="Active" selected>Active</option>
+                    <option value="Inactive">Inactive</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="remarks" class="form-label">Remarks (Optional)</label>
+                <textarea 
+                    id="remarks" 
+                    name="remarks" 
+                    class="form-textarea" 
+                    placeholder="Add any additional notes or comments"
+                    rows="4"
+                ></textarea>
+            </div>
+        </div>
+
+        <!-- Form Actions -->
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">
+                <span>✅ Add Entry</span>
+            </button>
+            <a href="{{ url_for('home') }}" class="btn btn-secondary">
+                <span>← Back</span>
+            </a>
+        </div>
+
+        <!-- Success Message -->
+        <div id="successMessage" class="alert alert-success" style="display: none;">
+            ✅ Entry added successfully! Redirecting...
+        </div>
+
+        <!-- Error Message -->
+        <div id="errorMessage" class="alert alert-error" style="display: none;">
+            ❌ <span id="errorText"></span>
+        </div>
+    </form>
+</div>
+
+<style>
+.form-container {
+    max-width: 700px;
+    margin: 30px auto;
+    padding: 20px;
+}
+
+.form-header {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.form-header h2 {
+    font-size: 28px;
+    color: #333;
+    margin-bottom: 8px;
+}
+
+.form-header .subtitle {
+    color: #666;
+    font-size: 16px;
+}
+
+.form-section {
+    margin-bottom: 30px;
+    padding-bottom: 30px;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.form-section:last-of-type {
+    border-bottom: none;
+}
+
+.section-title {
+    font-size: 18px;
+    color: #333;
+    margin-bottom: 20px;
+    font-weight: 600;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-label {
+    display: block;
+    font-weight: 500;
+    color: #333;
+    margin-bottom: 8px;
+    font-size: 14px;
+}
+
+.required {
+    color: #e74c3c;
+}
+
+.form-input,
+.form-select,
+.form-textarea {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+    font-family: inherit;
+    transition: border-color 0.3s;
+}
+
+.form-input:focus,
+.form-select:focus,
+.form-textarea:focus {
+    outline: none;
+    border-color: #3498db;
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+}
+
+.form-textarea {
+    resize: vertical;
+}
+
+.form-hint {
+    display: block;
+    color: #666;
+    font-size: 12px;
+    margin-top: 4px;
+}
+
+.form-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 40px;
+    justify-content: center;
+}
+
+.btn {
+    padding: 12px 30px;
+    border: none;
+    border-radius: 4px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-primary {
+    background-color: #3498db;
+    color: white;
+}
+
+.btn-primary:hover {
+    background-color: #2980b9;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
+}
+
+.btn-secondary {
+    background-color: #95a5a6;
+    color: white;
+}
+
+.btn-secondary:hover {
+    background-color: #7f8c8d;
+}
+
+.alert {
+    padding: 15px;
+    border-radius: 4px;
+    margin-top: 20px;
+    text-align: center;
+}
+
+.alert-success {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.alert-error {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+</style>
+
+<script>
+document.getElementById('addEntryForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    // Clear previous messages
+    document.getElementById('successMessage').style.display = 'none';
+    document.getElementById('errorMessage').style.display = 'none';
+    
+    // Collect form data
+    const formData = {
+        lab_name: document.getElementById('lab_name').value.trim(),
+        rider_name: document.getElementById('rider_name').value.trim(),
+        time_slot: document.getElementById('time_slot').value.trim(),
+        test_type: document.getElementById('test_type').value,
+        fuel_type: document.getElementById('fuel_type').value,
+        vehicle_class: document.getElementById('vehicle_class').value,
+        status: document.getElementById('status').value,
+        remarks: document.getElementById('remarks').value.trim()
+    };
+    
+    // Validate required fields
+    if (!formData.lab_name || !formData.rider_name || !formData.time_slot || 
+        !formData.test_type || !formData.fuel_type || !formData.vehicle_class) {
+        document.getElementById('errorText').textContent = 'Please fill in all required fields.';
+        document.getElementById('errorMessage').style.display = 'block';
+        return;
+    }
+    
+    try {
+        const response = await fetch('/api/entry/add', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(formData)
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            document.getElementById('successMessage').style.display = 'block';
+            setTimeout(() => {
+                window.location.href = '/';
+            }, 1500);
+        } else {
+            document.getElementById('errorText').textContent = result.message || 'Failed to add entry.';
+            document.getElementById('errorMessage').style.display = 'block';
+        }
+    } catch (error) {
+        document.getElementById('errorText').textContent = 'An error occurred: ' + error.message;
+        document.getElementById('errorMessage').style.display = 'block';
+    }
+});
+</script>
+{% endblock %}

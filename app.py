@@ -178,12 +178,65 @@ def update_rider_details(lab_name, rider_name, time_slot, data):
     
     return False
 
+def add_new_entry(data):
+    """Add a new entry to Excel file"""
+    try:
+        df = load_data()
+        
+        # If file doesn't exist, create a new dataframe with required columns
+        if df is None:
+            df = pd.DataFrame(columns=[
+                'Lab Name', 'Rider Name', 'Time Slot', 'Test Type', 
+                'Fuel Type', 'Vehicle Class', 'Status', 'Remarks'
+            ])
+        
+        # Create new row as a dictionary
+        new_row = {
+            'Lab Name': data.get('lab_name', ''),
+            'Rider Name': data.get('rider_name', ''),
+            'Time Slot': data.get('time_slot', ''),
+            'Test Type': data.get('test_type', ''),
+            'Fuel Type': data.get('fuel_type', ''),
+            'Vehicle Class': data.get('vehicle_class', ''),
+            'Status': data.get('status', 'Active'),
+            'Remarks': data.get('remarks', '')
+        }
+        
+        # Check if entry already exists
+        existing = df[
+            (df['Lab Name'] == new_row['Lab Name']) & 
+            (df['Rider Name'] == new_row['Rider Name']) & 
+            (df['Time Slot'] == new_row['Time Slot'])
+        ]
+        
+        if not existing.empty:
+            return False, "This entry already exists!"
+        
+        # Add new row using concat (pandas 2.0+)
+        df = pd.concat([df, pd.DataFrame([new_row])], ignore_index=True)
+        
+        # Save to Excel
+        df.to_excel(EXCEL_FILE, index=False)
+        print(f"DEBUG: Successfully added new entry - {new_row['Rider Name']} to {new_row['Lab Name']}")
+        return True, "Entry added successfully!"
+        
+    except Exception as e:
+        print(f"Error adding entry: {e}")
+        import traceback
+        traceback.print_exc()
+        return False, f"Error: {str(e)}"
+
 @app.route('/')
 def home():
     """Home page - Lab Dashboard"""
     labs = get_unique_labs()
     print(f"DEBUG: home() returned {len(labs)} labs")
     return render_template('home.html', labs=labs)
+
+@app.route('/add-entry')
+def add_entry():
+    """Add Entry page - Form to add new lab-rider assignment"""
+    return render_template('add_entry.html')
 
 @app.route('/lab/<lab_name>')
 def lab_details(lab_name):
@@ -214,6 +267,13 @@ def update_rider():
     )
     
     return jsonify({'success': success})
+
+@app.route('/api/entry/add', methods=['POST'])
+def add_entry_api():
+    """API endpoint to add new entry to Excel"""
+    data = request.json
+    success, message = add_new_entry(data)
+    return jsonify({'success': success, 'message': message})
 
 if __name__ == '__main__':
     app.run(debug=True)

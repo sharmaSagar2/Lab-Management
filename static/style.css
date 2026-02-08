@@ -504,4 +504,53 @@ textarea.form-input {
         flex-direction: column;
         gap: 0.3rem;
     }
+    
+    .header-top {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .btn-add-entry {
+        width: 100%;
+    }
 }
+
+/* Header Top Layout */
+.header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 2rem;
+}
+
+.header-top > div {
+    flex: 1;
+}
+
+/* Add Entry Button */
+.btn-add-entry {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    background: linear-gradient(135deg, var(--success-color) 0%, #15803d 100%);
+    color: white;
+    text-decoration: none;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    transition: all 0.3s ease;
+    box-shadow: var(--shadow);
+    white-space: nowrap;
+}
+
+.btn-add-entry:hover {
+    box-shadow: var(--shadow-lg);
+    transform: translateY(-2px);
+    background: linear-gradient(135deg, #15803d 0%, #166534 100%);
+}
+
+.btn-add-entry:active {
+    transform: translateY(0);
+}
+
