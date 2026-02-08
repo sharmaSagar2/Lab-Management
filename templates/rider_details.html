@@ -1,0 +1,158 @@
+{% extends "base.html" %}
+
+{% block title %}Rider Details - Lab Management{% endblock %}
+
+{% block breadcrumb %}
+<a href="/" class="breadcrumb-item">Home</a>
+<span class="breadcrumb-separator">/</span>
+<a href="/lab/{{ rider.lab_name }}" class="breadcrumb-item">{{ rider.lab_name }}</a>
+<span class="breadcrumb-separator">/</span>
+<span class="breadcrumb-item active">{{ rider.rider_name }}</span>
+{% endblock %}
+
+{% block content %}
+<div class="rider-details-header">
+    <h2>{{ rider.rider_name }}</h2>
+    <p class="subtitle">{{ rider.lab_name }} - {{ rider.time_slot }}</p>
+</div>
+
+<div class="rider-form-container">
+    <form id="riderForm" class="rider-form">
+        <div class="form-section">
+            <h3>Rider Information</h3>
+            
+            <div class="form-group">
+                <label for="riderName">Rider Name</label>
+                <input type="text" id="riderName" name="riderName" value="{{ rider.rider_name }}" readonly class="form-input readonly">
+            </div>
+            
+            <div class="form-group">
+                <label for="timeSlot">Time Slot</label>
+                <input type="text" id="timeSlot" name="timeSlot" value="{{ rider.time_slot }}" readonly class="form-input readonly">
+            </div>
+        </div>
+
+        <div class="form-section">
+            <h3>Test Configuration</h3>
+            
+            <div class="form-group">
+                <label for="testType">Test Type *</label>
+                <select id="testType" name="testType" class="form-input" required>
+                    <option value="">-- Select Test Type --</option>
+                    <option value="Emission Test" {% if rider.test_type == 'Emission Test' %}selected{% endif %}>Emission Test</option>
+                    <option value="Performance Test" {% if rider.test_type == 'Performance Test' %}selected{% endif %}>Performance Test</option>
+                    <option value="Safety Test" {% if rider.test_type == 'Safety Test' %}selected{% endif %}>Safety Test</option>
+                    <option value="Durability Test" {% if rider.test_type == 'Durability Test' %}selected{% endif %}>Durability Test</option>
+                    <option value="Noise Test" {% if rider.test_type == 'Noise Test' %}selected{% endif %}>Noise Test</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="fuelType">Fuel Type *</label>
+                <select id="fuelType" name="fuelType" class="form-input" required>
+                    <option value="">-- Select Fuel Type --</option>
+                    <option value="Petrol" {% if rider.fuel_type == 'Petrol' %}selected{% endif %}>Petrol</option>
+                    <option value="Diesel" {% if rider.fuel_type == 'Diesel' %}selected{% endif %}>Diesel</option>
+                    <option value="CNG" {% if rider.fuel_type == 'CNG' %}selected{% endif %}>CNG</option>
+                    <option value="LPG" {% if rider.fuel_type == 'LPG' %}selected{% endif %}>LPG</option>
+                    <option value="Electric" {% if rider.fuel_type == 'Electric' %}selected{% endif %}>Electric</option>
+                    <option value="Hybrid" {% if rider.fuel_type == 'Hybrid' %}selected{% endif %}>Hybrid</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="vehicleClass">Vehicle Class *</label>
+                <select id="vehicleClass" name="vehicleClass" class="form-input" required>
+                    <option value="">-- Select Vehicle Class --</option>
+                    <option value="Two-Wheeler" {% if rider.vehicle_class == 'Two-Wheeler' %}selected{% endif %}>Two-Wheeler</option>
+                    <option value="Three-Wheeler" {% if rider.vehicle_class == 'Three-Wheeler' %}selected{% endif %}>Three-Wheeler</option>
+                    <option value="Four-Wheeler" {% if rider.vehicle_class == 'Four-Wheeler' %}selected{% endif %}>Four-Wheeler</option>
+                    <option value="Heavy-Duty" {% if rider.vehicle_class == 'Heavy-Duty' %}selected{% endif %}>Heavy-Duty</option>
+                    <option value="Light Commercial" {% if rider.vehicle_class == 'Light Commercial' %}selected{% endif %}>Light Commercial</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="form-section">
+            <h3>Additional Information</h3>
+            
+            <div class="form-group">
+                <label for="remarks">Remarks</label>
+                <textarea id="remarks" name="remarks" class="form-input" rows="4" placeholder="Enter any remarks or notes...">{{ rider.remarks }}</textarea>
+            </div>
+            
+            <div class="form-group">
+                <label for="status">Status</label>
+                <select id="status" name="status" class="form-input">
+                    <option value="Active" {% if rider.status == 'Active' %}selected{% endif %}>Active</option>
+                    <option value="Inactive" {% if rider.status == 'Inactive' %}selected{% endif %}>Inactive</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">💾 Save / Update</button>
+            <button type="button" class="btn btn-secondary" onclick="window.history.back()">← Back</button>
+        </div>
+    </form>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.getElementById('riderForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const data = {
+        lab_name: '{{ rider.lab_name }}',
+        rider_name: '{{ rider.rider_name }}',
+        time_slot: '{{ rider.time_slot }}',
+        test_type: document.getElementById('testType').value,
+        fuel_type: document.getElementById('fuelType').value,
+        vehicle_class: document.getElementById('vehicleClass').value,
+        remarks: document.getElementById('remarks').value,
+        status: document.getElementById('status').value
+    };
+    
+    try {
+        const response = await fetch('/api/rider/update', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data)
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            showNotification('Rider details updated successfully!', 'success');
+            setTimeout(() => {
+                window.history.back();
+            }, 1500);
+        } else {
+            showNotification('Failed to update rider details', 'error');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        showNotification('An error occurred while saving', 'error');
+    }
+});
+
+function showNotification(message, type) {
+    const notification = document.createElement('div');
+    notification.className = `notification notification-${type}`;
+    notification.textContent = message;
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.classList.add('show');
+    }, 10);
+    
+    setTimeout(() => {
+        notification.remove();
+    }, 3000);
+}
+</script>
+{% endblock %}

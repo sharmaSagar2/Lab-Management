@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block title %}Lab Dashboard - Lab Management{% endblock %}
+
+{% block breadcrumb %}
+<span class="breadcrumb-item active">Home</span>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-header">
+    <h2>Lab Dashboard</h2>
+    <p class="subtitle">Select a lab to view time slots and assign riders</p>
+</div>
+
+<div class="labs-grid">
+    {% if labs %}
+        {% for lab in labs %}
+        <div class="lab-tile" onclick="navigateToLab('{{ lab.name }}')">
+            <div class="lab-tile-header">
+                <h3 class="lab-name">{{ lab.name }}</h3>
+                <span class="status-badge {% if lab.status == 'Active' %}status-active{% else %}status-inactive{% endif %}">
+                    {{ lab.status }}
+                </span>
+            </div>
+            <div class="lab-riders">
+                <p class="riders-label">Assigned Riders:</p>
+                <ul class="riders-list">
+                    {% for rider in lab.riders %}
+                    <li class="rider-item">{{ rider }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            <div class="lab-footer">
+                <span class="click-indicator">Click to view time slots →</span>
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+    <div class="no-data">
+        <p>No labs available. Please add labs in the Excel file.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function navigateToLab(labName) {
+    window.location.href = `/lab/${encodeURIComponent(labName)}`;
+}
+</script>
+{% endblock %}
