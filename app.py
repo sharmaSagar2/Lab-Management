@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, redirect, url_for, jsonify
 import pandas as pd
 import os
 from datetime import datetime
+from datetime import time as dt_time
 
 app = Flask(__name__)
 
@@ -14,6 +15,27 @@ app.config['UPLOAD_FOLDER'] = DATA_FOLDER
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
 EXCEL_FILE = os.path.join(app.config['UPLOAD_FOLDER'], 'lab_data.xlsx')
+
+def is_time_in_slot(current_time, time_slot_str):
+    """Check if current time falls within a time slot"""
+    try:
+        # Parse time slot string like "09:00–11:00" or "09:00-11:00"
+        times = time_slot_str.replace('–', '-').split('-')
+        if len(times) != 2:
+            return False
+        
+        start_time_str = times[0].strip()
+        end_time_str = times[1].strip()
+        
+        # Parse times
+        start_time = datetime.strptime(start_time_str, '%H:%M').time()
+        end_time = datetime.strptime(end_time_str, '%H:%M').time()
+        
+        # Check if current time is within the slot
+        return start_time <= current_time <= end_time
+    except Exception as e:
+        print(f"Error parsing time slot '{time_slot_str}': {e}")
+        return False
 
 def load_data():
     """Load data from Excel file"""
@@ -39,29 +61,43 @@ def get_unique_labs():
         return []
     
     print(f"DEBUG: Loaded {len(df)} records from Excel")
+    
+    # Get current time
+    current_time = datetime.now().time()
+    print(f"DEBUG: Current time: {current_time}")
+    
     labs_data = {}
     for _, row in df.iterrows():
         lab_name = row['Lab Name']
         rider_name = row['Rider Name']
         status = row['Status']
+        time_slot = row['Time Slot']
         
         if lab_name not in labs_data:
             labs_data[lab_name] = {
                 'name': lab_name,
                 'riders': set(),
-                'status': status
+                'active_now': False
             }
+        
         labs_data[lab_name]['riders'].add(rider_name)
+        
+        # Check if this rider is active right now
+        if status == 'Active' and is_time_in_slot(current_time, time_slot):
+            labs_data[lab_name]['active_now'] = True
+            print(f"DEBUG: {rider_name} in {lab_name} is active at {time_slot} (current: {current_time})")
     
-    # Convert sets to lists
-    labs_list = [
-        {
+    # Convert sets to lists and determine lab status based on active riders right now
+    labs_list = []
+    for lab in labs_data.values():
+        lab_status = 'Active' if lab['active_now'] else 'Inactive'
+        
+        labs_list.append({
             'name': lab['name'],
             'riders': sorted(list(lab['riders'])),
-            'status': lab['status']
-        }
-        for lab in labs_data.values()
-    ]
+            'status': lab_status
+        })
+    
     return labs_list
 
 def get_lab_time_slots(lab_name):
